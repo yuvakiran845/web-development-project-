@@ -1,38 +1,53 @@
-const display = document.getElementById("display");
+const cells = document.querySelectorAll('.cell');
+const statusText = document.getElementById('status');
+const restartBtn = document.getElementById('restart');
 
-function append(char) {
-  display.value += char;
-}
+let currentPlayer = 'X';
+let gameActive = true;
+let gameState = ["", "", "", "", "", "", "", "", ""];
 
-function clearDisplay() {
-  display.value = "";
-}
+const winConditions = [
+  [0,1,2], [3,4,5], [6,7,8], // Rows
+  [0,3,6], [1,4,7], [2,5,8], // Columns
+  [0,4,8], [2,4,6]           // Diagonals
+];
 
-function backspace() {
-  display.value = display.value.slice(0, -1);
-}
+function handleClick(e) {
+  const index = e.target.dataset.index;
 
-function calculate() {
-  try {
-    display.value = eval(display.value);
-  } catch {
-    display.value = "Error";
-  }}
-function Delete(){
-display.value="";
-}
+  if (gameState[index] !== "" || !gameActive) return;
 
-// Keyboard support
-document.addEventListener("keydown", function (e) {
-  const key = e.key;
-  if ("0123456789+-*/.%".includes(key)) {
-    append(key);
-  } else if (key === "Enter") {
-    e.preventDefault();
-    calculate();
-  } else if (key === "Backspace") {
-    backspace();
-  } else if (key === "Escape") {
-    clearDisplay();
+  gameState[index] = currentPlayer;
+  e.target.textContent = currentPlayer;
+
+  if (checkWin()) {
+    statusText.textContent = `${currentPlayer} wins! 🎉`;
+    gameActive = false;
+  } else if (!gameState.includes("")) {
+    statusText.textContent = "It's a draw!";
+    gameActive = false;
+  } else {
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    statusText.textContent =` ${currentPlayer}'s turn`;
   }
-});
+}
+
+function checkWin() {
+  return winConditions.some(condition => {
+    const [a, b, c] = condition;
+    return gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c];
+  });
+}
+
+function restartGame() {
+  gameActive = true;
+  currentPlayer = 'X';
+  gameState = ["", "", "", "", "", "", "", "", ""];
+  cells.forEach(cell => cell.textContent = "");
+  statusText.textContent = `${currentPlayer}'s turn`;
+}
+
+cells.forEach(cell => cell.addEventListener('click', handleClick));
+restartBtn.addEventListener('click', restartGame);
+
+statusText.textContent = `${currentPlayer}'s turn`;
